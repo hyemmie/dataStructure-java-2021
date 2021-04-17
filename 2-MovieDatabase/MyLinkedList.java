@@ -25,7 +25,7 @@ public class MyLinkedList<T> implements ListInterface<T> {
      * @see SearchCmd#apply(MovieDB)
      * @see java.lang.Iterable#iterator()
      */
-    public final Iterator<T> iterator() {
+    public final MyLinkedListIterator<T> iterator() {
     	return new MyLinkedListIterator<T>(this);
     }
 
@@ -88,6 +88,21 @@ class MyLinkedListIterator<T> implements Iterator<T> {
 		curr = curr.getNext();
 
 		return curr.getItem();
+	}
+
+
+	public void prevInsert (T item) {
+		prev.insertNext(item);
+		list.numItems += 1;
+
+		// curr = prev.getNext();
+		curr = prev;
+		prev = null;
+	}
+
+	public void currInsert (T item) {
+		curr.insertNext(item);
+		list.numItems += 1;
 	}
 
 	@Override

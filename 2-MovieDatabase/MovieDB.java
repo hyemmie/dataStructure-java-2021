@@ -1,132 +1,135 @@
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-/**
- * Genre, Title 을 관리하는 영화 데이터베이스.
- * 
- * MyLinkedList 를 사용해 각각 Genre와 Title에 따라 내부적으로 정렬된 상태를  
- * 유지하는 데이터베이스이다. 
- */
 public class MovieDB {
+
+	private MyLinkedList<Genre> database; 
+
     public MovieDB() {
-        // FIXME implement this
-    	
-    	// HINT: MovieDBGenre 클래스를 정렬된 상태로 유지하기 위한 
-    	// MyLinkedList 타입의 멤버 변수를 초기화 한다.
+		database = new MyLinkedList<>();
     }
 
     public void insert(MovieDBItem item) {
-        // FIXME implement this
-        // Insert the given item to the MovieDB.
 
-    	// Printing functionality is provided for the sake of debugging.
-        // This code should be removed before submitting your work.
-        System.err.printf("[trace] MovieDB: INSERT [%s] [%s]\n", item.getGenre(), item.getTitle());
+		String itemGenre = item.getGenre();
+		String itemTitle = item.getTitle();
+
+		if (database.isEmpty()) {
+			Genre newGenre = new Genre(itemGenre);
+			newGenre.getList().add(itemTitle);
+			database.add(newGenre);
+		} else {
+			MyLinkedListIterator<Genre> itr = database.iterator();
+			while (itr.hasNext()) {
+				Genre genreItr = itr.next();
+				// find existing genre
+				if (genreItr.getItem().compareTo(itemGenre) == 0) {
+					MyLinkedListIterator<String> titleItr = genreItr.getList().iterator();
+
+					// if existing titlelist is empty (after delete)
+					if (genreItr.getList().isEmpty()) {
+						genreItr.getList().add(itemTitle);
+					} // insert title by following order
+					while (titleItr.hasNext()) {
+						String currentTitle = titleItr.next();
+						if (currentTitle.compareTo(itemTitle) == 0) {
+							return;
+						}
+						else if (currentTitle.compareTo(itemTitle) > 0) {
+							titleItr.prevInsert(itemTitle);
+							return;
+						} 
+						else if (!titleItr.hasNext()) {
+							titleItr.currInsert(itemTitle);
+							return;
+						}
+					}
+					// insert new genre by follwing order
+				} else if (genreItr.getItem().compareTo(itemGenre) > 0) {
+					Genre newGenre = new Genre(itemGenre);
+					newGenre.getList().add(itemTitle);
+					itr.prevInsert(newGenre);
+					return;
+				} else if (!itr.hasNext()) {
+					Genre newGenre = new Genre(itemGenre);
+					newGenre.getList().add(itemTitle);
+					itr.currInsert(newGenre);
+					return;
+				}
+			} 
+		}
     }
 
     public void delete(MovieDBItem item) {
-        // FIXME implement this
-        // Remove the given item from the MovieDB.
-    	
-    	// Printing functionality is provided for the sake of debugging.
-        // This code should be removed before submitting your work.
-        System.err.printf("[trace] MovieDB: DELETE [%s] [%s]\n", item.getGenre(), item.getTitle());
+
+		String itemGenre = item.getGenre();
+		String itemTitle = item.getTitle();
+
+
+		MyLinkedListIterator<Genre> itr = database.iterator();
+
+		while (itr.hasNext()) {
+			Genre genreItr = itr.next();
+			if (genreItr.getItem().compareTo(itemGenre) == 0) {
+				MyLinkedListIterator<String> titleItr = genreItr.getList().iterator();
+				while (titleItr.hasNext()) {
+					if (titleItr.next().compareTo(itemTitle) == 0) {
+						titleItr.remove();
+						return;
+					}
+				}
+			}
+		}
     }
 
     public MyLinkedList<MovieDBItem> search(String term) {
-        // FIXME implement this
-        // Search the given term from the MovieDB.
-        // You should return a linked list of MovieDBItem.
-        // The search command is handled at SearchCmd class.
-    	
-    	// Printing search results is the responsibility of SearchCmd class. 
-    	// So you must not use System.out in this method to achieve specs of the assignment.
-    	
-        // This tracing functionality is provided for the sake of debugging.
-        // This code should be removed before submitting your work.
-    	System.err.printf("[trace] MovieDB: SEARCH [%s]\n", term);
-    	
-    	// FIXME remove this code and return an appropriate MyLinkedList<MovieDBItem> instance.
-    	// This code is supplied for avoiding compilation error.   
+       
         MyLinkedList<MovieDBItem> results = new MyLinkedList<MovieDBItem>();
+		MyLinkedListIterator<Genre> itr = database.iterator();
+
+		while (itr.hasNext()) {
+			Genre genreItr = itr.next();
+			MyLinkedListIterator<String> titleItr = genreItr.getList().iterator();
+			while (titleItr.hasNext()) {
+				String currentTitle = titleItr.next();
+				if (currentTitle.contains(term)) {
+					MovieDBItem matchedItem = new MovieDBItem(genreItr.getItem(),currentTitle);
+					results.add(matchedItem);
+				}
+			}
+		}
 
         return results;
     }
     
     public MyLinkedList<MovieDBItem> items() {
-        // FIXME implement this
-        // Search the given term from the MovieDatabase.
-        // You should return a linked list of QueryResult.
-        // The print command is handled at PrintCmd class.
-
-    	// Printing movie items is the responsibility of PrintCmd class. 
-    	// So you must not use System.out in this method to achieve specs of the assignment.
-
-    	// Printing functionality is provided for the sake of debugging.
-        // This code should be removed before submitting your work.
-        System.err.printf("[trace] MovieDB: ITEMS\n");
-
-    	// FIXME remove this code and return an appropriate MyLinkedList<MovieDBItem> instance.
-    	// This code is supplied for avoiding compilation error.   
+ 
         MyLinkedList<MovieDBItem> results = new MyLinkedList<MovieDBItem>();
-        
+		MyLinkedListIterator<Genre> itr = database.iterator();
+
+		while (itr.hasNext()) {
+			Genre genreItr = itr.next();
+			MyLinkedListIterator<String> titleItr = genreItr.getList().iterator();
+			while (titleItr.hasNext()) {
+				MovieDBItem currentItem = new MovieDBItem(genreItr.getItem(),titleItr.next());
+				results.add(currentItem);
+			}
+		} 
     	return results;
     }
 }
 
-class Genre extends Node<String> implements Comparable<Genre> {
+class Genre extends Node<String> {
+
+	private MyLinkedList<String> titleList;
+
 	public Genre(String name) {
 		super(name);
-		throw new UnsupportedOperationException("not implemented yet");
+		this.titleList = new MyLinkedList<>();
+	}
+
+	public MyLinkedList<String> getList() {
+		return this.titleList;
 	}
 	
-	@Override
-	public int compareTo(Genre o) {
-		throw new UnsupportedOperationException("not implemented yet");
-	}
-
-	@Override
-	public int hashCode() {
-		throw new UnsupportedOperationException("not implemented yet");
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		throw new UnsupportedOperationException("not implemented yet");
-	}
-}
-
-class MovieList implements ListInterface<String> {	
-	public MovieList() {
-	}
-
-	@Override
-	public Iterator<String> iterator() {
-		throw new UnsupportedOperationException("not implemented yet");
-	}
-
-	@Override
-	public boolean isEmpty() {
-		throw new UnsupportedOperationException("not implemented yet");
-	}
-
-	@Override
-	public int size() {
-		throw new UnsupportedOperationException("not implemented yet");
-	}
-
-	@Override
-	public void add(String item) {
-		throw new UnsupportedOperationException("not implemented yet");
-	}
-
-	@Override
-	public String first() {
-		throw new UnsupportedOperationException("not implemented yet");
-	}
-
-	@Override
-	public void removeAll() {
-		throw new UnsupportedOperationException("not implemented yet");
-	}
 }
