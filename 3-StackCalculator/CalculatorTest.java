@@ -6,17 +6,9 @@ import java.util.regex.Pattern;
 
 public class CalculatorTest
 {
-
 	public static final String ERROR_MSG = "ERROR";
-  
-	public static final Pattern DEVIDE_ZERO = Pattern.compile("\\s*[0-9]\\s*[/%]\\s*0");
-	public static final Pattern NO_OPERATOR = Pattern.compile("\\s*[0-9]\\s*[0-9]");
 
-
-    // implement this
-    // public static final Pattern EXPRESSION_PATTERN = Pattern.compile("\\s*([+-])?\\s*([0-9]+)\\s*([-+*])\\s*([+-])?\\s*([0-9]+)\\s*");
-
-
+	// return operator's priority
 	public static int priority(char ch) {
 		switch (ch) {
 			case '(' : return 0;
@@ -32,23 +24,21 @@ public class CalculatorTest
 		}
 	}
 
+	// transform infix string to postfix string
 	public static String infixToPostfix(String input) {
 		Stack<Object> infixStack = new Stack<>();	
 		StringBuilder sb = new StringBuilder();
-		// boolean oprPreviously = false;
 		boolean digitPreviously = false;
 
 		for (int i = 0; i < input.length(); i++) {
 			char temp = input.charAt(i);
 
-			// handling digits
+			// CASE 1 : handling digits
 			if (priority(temp) < 0) {
-				// oprPreviously = false;
 				sb.append(temp);
 				digitPreviously = true;
-			// handling (, )
+			// CASE 2 : handling (, )
 			} else if (priority(temp) == 0) {
-				// oprPreviously = false;
 				if (temp == '(') {
 					infixStack.push(temp);
 					digitPreviously = false;	
@@ -58,7 +48,6 @@ public class CalculatorTest
 						if ((char)infixStack.peek() == '(') {
 							foundOpener = true;
 							infixStack.pop();
-							// sb.append(' ');
 							break;
 						} 
 						char top = (char)infixStack.pop();
@@ -67,16 +56,14 @@ public class CalculatorTest
 					}
 					digitPreviously = true;	
 					if (!foundOpener) {
+						// invalid case : different number of ( and )
 						throw new IllegalArgumentException();
 					}
-
 				}
-				// digitPreviously = false;	
 			}
-			// handling operators
+			// CASE 3 : handling operators
 			else if (priority(temp) > 0) {
 				if (infixStack.empty()) {
-					// if (sb.toString().length() == 0 && temp == '-') {
 					if (!digitPreviously && temp == '-') {
 						temp = '~';
 					}
@@ -84,35 +71,28 @@ public class CalculatorTest
 					if (digitPreviously) sb.append(' ');
 				} else {
 					while (!infixStack.empty()) {
-						// if (temp == '-' && oprPreviously) {
-						if (temp == '-' && !digitPreviously) {
+						if (!digitPreviously && temp == '-') {
 							temp = '~';
 						}
-						// if (priority((char)infixStack.peek()) > priority(temp) || ((char)infixStack.peek() == temp && checkEquality)) {
-						// if (priority((char)infixStack.peek()) > priority(temp) || !digitPreviously || checkEquality) {
 						if (priority((char)infixStack.peek()) < priority(temp) || temp == '^' || temp == '~') {
 							break;
 						}
 						char top = (char)infixStack.pop();
-						// if (sb.toString().charAt(sb.toString().length()-1) != ' ') sb.append(' ');
 						if (digitPreviously) sb.append(' ');
 						sb.append(top);
-						// if (infixStack.empty()) {
-						// 	break;
-						// }
 					}
 					infixStack.push(temp);
 					if (digitPreviously) sb.append(' ');
 				}
-				// oprPreviously = true;
 				digitPreviously = false;
 			}
 		}
 
-		// pop remaining char
+		// pop remaining chars
 		while (!infixStack.empty()) {
 			char temp = (char)infixStack.pop();
 			if (temp == '(') {
+				// invalid case : different number of ( and )
 				throw new IllegalArgumentException();
 			} else {
 				sb.append(' ');
@@ -123,16 +103,17 @@ public class CalculatorTest
 		return sb.toString();
 	}
 
+	// check invalid input
 	public static void checkValidInput(String input) {
 
-		// devide zero or no operator
-        // if (input.matches("^*[0-9]\\s*[/%]\\s*[0]*$") || input.matches("^*[0-9]\\s+[0-9]*$")) {
+		// invalid case : devide zero or no operator 
 		if (input.matches("^.*[0-9]\\s*[/%]\\s*[0].*$") || input.matches("^.*[0-9]\\s+[0-9].*$")) {
 			throw new IllegalArgumentException();
     	}
 
 	}
 
+	// simple calculate method
 	public static long calculate(long a, long b, char opr) {
 		switch (opr) {
 			case '+' : return a + b;
@@ -141,6 +122,7 @@ public class CalculatorTest
 			case '/' : return a / b;
 			case '%' : return a % b;
 			case '^' : 
+			// invalid case : negative power of zero
 			if (a == 0 && b < 0) throw new IllegalArgumentException();
 			else {
 				return (long)Math.pow(a, b);
@@ -149,14 +131,16 @@ public class CalculatorTest
 		}
 	}
 
-	// reference: stack class note 51 page sample code
+	// calculate postfix string 
+	// reference: stack class note 51 page sample code (evaluate)
+	// some edits with reference
 	public static long evaluate(String post) {
 		long a, b;
 		Stack<Long> tmpStack = new Stack<>();
 		boolean digitPreviously = false;
 		for (int i = 0; i < post.length(); i++) {
 			char ch = post.charAt(i);
-			// ch is digit
+			// CASE 1 : ch is digit
 			if (Character.isDigit(ch)) {
 				if (digitPreviously) {
 					long temp = tmpStack.pop();
@@ -166,7 +150,7 @@ public class CalculatorTest
 					tmpStack.push((long)(ch - '0'));
 				}
 				digitPreviously = true;
-				// ch is operator
+				// CASE 2 : ch is operator
 			} else if (priority(ch) > 0) {
 				if (ch == '~') {
 					a = tmpStack.pop();
@@ -179,7 +163,7 @@ public class CalculatorTest
 					tmpStack.push(ret);
 				}
 				digitPreviously = false;
-				// ch is blank
+				// CASE 3 : ch is blank
 			} else {
 				digitPreviously = false;
 			}
@@ -200,37 +184,29 @@ public class CalculatorTest
 				if (input.compareTo("q") == 0)
 					break;
 
-				// command(input);
-
-				checkValidInput(input);
-				String postfix;
-				long result;
-				postfix = infixToPostfix(input.replaceAll("\\s+",""));
-				result = evaluate(postfix);
-
-				System.out.println(postfix);
-				System.out.println(result);
+				command(input);
 
 			}
 			catch (Exception e)
 			{
 				System.out.println(ERROR_MSG);
-				// System.out.println("입력이 잘못되었습니다. 오류 : " + e.toString());
 			}
 		}
 	}
 
 	private static void command(String input)
 	{
-		// if (checkValidInput(input)) {
-		// 	String postfix;
-		// 	postfix = infixToPostfix(input.replaceAll("\\s+",""));
-		// 	System.out.println(postfix);
-		// 	System.out.println(evaluate(postfix));
-		// } else {
-		// 	System.out.println(ERROR_MSG);
-		// }
-		// TODO : 아래 문장을 삭제하고 구현해라.
-		// System.out.println("<< command 함수에서 " + input + " 명령을 처리할 예정입니다 >>");
+		try {
+			checkValidInput(input);
+			String postfix;
+			long result;
+			postfix = infixToPostfix(input.replaceAll("\\s+",""));
+			result = evaluate(postfix);
+
+			System.out.println(postfix);
+			System.out.println(result);
+		} catch (Exception e) {
+			throw new IllegalArgumentException();
+		}
 	}
 }
