@@ -53,8 +53,10 @@ public class CalculatorTest
 					infixStack.push(temp);
 					digitPreviously = false;	
 				} else {
+					boolean foundOpener = false;
 					while (!infixStack.empty()) {
 						if ((char)infixStack.peek() == '(') {
+							foundOpener = true;
 							infixStack.pop();
 							// sb.append(' ');
 							break;
@@ -64,6 +66,9 @@ public class CalculatorTest
 						sb.append(top);
 					}
 					digitPreviously = true;	
+					if (!foundOpener) {
+						throw new IllegalArgumentException();
+					}
 
 				}
 				// digitPreviously = false;	
@@ -105,26 +110,26 @@ public class CalculatorTest
 		}
 
 		// pop remaining char
-		while (true) {
-			if (infixStack.empty()) {
-				break;
+		while (!infixStack.empty()) {
+			char temp = (char)infixStack.pop();
+			if (temp == '(') {
+				throw new IllegalArgumentException();
+			} else {
+				sb.append(' ');
+				sb.append(temp);
 			}
-			sb.append(' ');
-			sb.append(infixStack.pop());
 		}
 
 		return sb.toString();
 	}
 
-	public static boolean checkValidInput(String input) {
+	public static void checkValidInput(String input) {
 
-		// Matcher match = DEVIDE_ZERO.matcher(input);
-
-        if (input.matches("\\s*[0-9]\\s*[/%]\\s*0") || input.matches("\\s*[0-9]\\s*[0-9]")) {
-    		return false;
+		// devide zero or no operator
+        // if (input.matches("^*[0-9]\\s*[/%]\\s*[0]*$") || input.matches("^*[0-9]\\s+[0-9]*$")) {
+		if (input.matches("^.*[0-9]\\s*[/%]\\s*[0].*$") || input.matches("^.*[0-9]\\s+[0-9].*$")) {
+			throw new IllegalArgumentException();
     	}
-
-		return true;
 
 	}
 
@@ -135,7 +140,11 @@ public class CalculatorTest
 			case '*' : return a * b;
 			case '/' : return a / b;
 			case '%' : return a % b;
-			case '^' : return (long)Math.pow(a, b);
+			case '^' : 
+			if (a == 0 && b < 0) throw new IllegalArgumentException();
+			else {
+				return (long)Math.pow(a, b);
+			}
 			default : return -1;
 		}
 	}
@@ -191,33 +200,36 @@ public class CalculatorTest
 				if (input.compareTo("q") == 0)
 					break;
 
-				command(input);
-				// String postfix;
-				// long result;
-				// postfix = infixToPostfix(input.replaceAll("\\s+",""));
-				// result = evaluate(postfix);
-				// System.out.println(postfix);
-				// System.out.println(result);
+				// command(input);
+
+				checkValidInput(input);
+				String postfix;
+				long result;
+				postfix = infixToPostfix(input.replaceAll("\\s+",""));
+				result = evaluate(postfix);
+
+				System.out.println(postfix);
+				System.out.println(result);
 
 			}
 			catch (Exception e)
 			{
-				// System.out.println(ERROR_MSG);
-				System.out.println("입력이 잘못되었습니다. 오류 : " + e.toString());
+				System.out.println(ERROR_MSG);
+				// System.out.println("입력이 잘못되었습니다. 오류 : " + e.toString());
 			}
 		}
 	}
 
 	private static void command(String input)
 	{
-		if (checkValidInput(input)) {
-			String postfix;
-			postfix = infixToPostfix(input.replaceAll("\\s+",""));
-			System.out.println(postfix);
-			System.out.println(evaluate(postfix));
-		} else {
-			System.out.println(ERROR_MSG);
-		}
+		// if (checkValidInput(input)) {
+		// 	String postfix;
+		// 	postfix = infixToPostfix(input.replaceAll("\\s+",""));
+		// 	System.out.println(postfix);
+		// 	System.out.println(evaluate(postfix));
+		// } else {
+		// 	System.out.println(ERROR_MSG);
+		// }
 		// TODO : 아래 문장을 삭제하고 구현해라.
 		// System.out.println("<< command 함수에서 " + input + " 명령을 처리할 예정입니다 >>");
 	}
