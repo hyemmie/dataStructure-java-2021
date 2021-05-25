@@ -2,3 +2,5 @@
 *.class
 */testset
 */my_output
+*.pdf
+*.tar
