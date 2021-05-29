@@ -2,7 +2,10 @@ import java.io.*;
 
 public class Matching
 {
-	public static void main(String args[])
+
+	// 프로그램에서 사용할 HashTable 객체를 생성한다.
+	static HashTable<AVLTree<String, SubStringList<String>>> ht;
+	public static void main(String args[]) throws Exception
 	{
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
@@ -23,9 +26,29 @@ public class Matching
 		}
 	}
 
-	private static void command(String input)
+	private static void command(String input) throws Exception
 	{
-		// TODO : 아래 문장을 삭제하고 구현해라.
-		System.out.println("<< command 함수에서 " + input + " 명령을 처리할 예정입니다 >>");
+		ConsoleCommand command = null;
+
+		switch (input.charAt(0)) {
+			case '<' : {
+				ht = new HashTable<AVLTree<String, SubStringList<String>>>();
+				command = new InsertCmd();
+				command.apply(ht, input);
+				break;
+			}
+			case '@' : {
+				command = new PrintCmd();
+				command.apply(ht, input);
+				break;
+			}
+			case '?' : {
+				command = new SearchCmd();
+				command.apply(ht, input);
+				break;
+			}
+			default : 
+				throw new IOException(input);
+		}
 	}
 }
