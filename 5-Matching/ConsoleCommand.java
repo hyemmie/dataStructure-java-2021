@@ -93,7 +93,6 @@ class InsertCmd extends AbstractConsoleCommand {
                 String subString = currLine.substring(i-1, i + SUBSTRING_LENGTH - 1);
                 String subStringIndex = new String("(" + lineIndex + ", " + i + ")");
                 insert(ht, subString, subStringIndex);
-                // System.out.println(subString + " " + subStringIndex);
             }
         }
     }
@@ -151,6 +150,8 @@ class PrintCmd extends AbstractConsoleCommand {
             StringBuilder sb = traversal(ht.search(indexNumber).getRoot());
             if (sb.length() == 0) {
                 sb.append(EMPTY_SLOT);
+            } else {
+                sb.deleteCharAt(sb.length() - 1);
             }
             res = sb.toString();
         }
@@ -173,89 +174,79 @@ class SearchCmd extends AbstractConsoleCommand {
 	}
 
     private void search(HashTable<AVLTree<String, SubStringList<String>>> ht, String pattern) {
-        // int hashedPattern = hash(pattern);
-        String res = new String();
-    
-        // if (ht.search(hashedPattern) == null || ht.search(hashedPattern).search(pattern) == null) {
-        // if (ht.search(hashedPattern) == null) {
-        //     res = "(0, 0)";
-        // } else {
-            // split input pattern up to SUBSTRING_LENGTH
-            int splitLength = (pattern.length() - 1) / SUBSTRING_LENGTH + 1;
-            String[] splitedStrings = new String[splitLength];
-            int[] splitedIndex = new int[splitLength];
-            
-            // save splited strings and it's index
-            for (int i = 0; i < splitLength; i++) {
-			    if ((i + 1) * SUBSTRING_LENGTH < pattern.length()) {
-				    splitedStrings[i] = pattern.substring(i * SUBSTRING_LENGTH, (i + 1) * SUBSTRING_LENGTH);
-                    splitedIndex[i] = i * SUBSTRING_LENGTH;
-                } else {
-                    splitedStrings[i] = pattern.substring(pattern.length() - SUBSTRING_LENGTH, pattern.length());
-                    splitedIndex[i] = pattern.length() - SUBSTRING_LENGTH;
-                }
-			}
 
-            // search each splited strings in AVLtree
-            LinkedList<SubStringList<String>> splitedStringList = new LinkedList<SubStringList<String>>();
-            AVLTree<String, SubStringList<String>> splitedTree = new AVLTree<String, SubStringList<String>>();
-            SubStringList<String> splitedIndexList = new SubStringList<String>(null);
-            for (int i = 0; i < splitedStrings.length; i++) {
-                // if ((splitedTree = ht.search(hash(splitedStrings[i])).search(splitedStrings[i]).item) != null) {
-                splitedTree = ht.search(hash(splitedStrings[i]));
-                if (splitedTree != null && (splitedIndexList = splitedTree.search(splitedStrings[i]).item) != null) {
-                    splitedStringList.add(splitedIndexList);
-                } else {
-                    splitedStringList.clear();
-                    break;
-                }
-            }
-            StringBuilder sb = new StringBuilder();
+        // split input pattern up to SUBSTRING_LENGTH
+        // int splitLength = (pattern.length() - 1) / SUBSTRING_LENGTH + 1;
+        int splitLength = pattern.length() / SUBSTRING_LENGTH + 1;
+        String[] splitedStrings = new String[splitLength];
+        int[] splitedIndex = new int[splitLength];
         
-            if (!splitedStringList.isEmpty()) {
-                SubStringList<String> first = splitedStringList.peek();
-                // Pattern p = Pattern.compile("^\\(([0-9]+)\\,\\s([0-9]+)\\)*$");
-                Pattern p = Pattern.compile("^.*([0-9]+).*([0-9]+).*$");
-                // if (first != null) {
-                    for (String firstIndex : first) {
-                        boolean found = true;
-                        int i = 0;
-                        for (SubStringList<String> subList : splitedStringList) {
-                            if (found && subList != null) {
-                                found = false;
-                                for (String nextIndex : subList) {
-                                    Matcher m1 = p.matcher(firstIndex);
-                                    Matcher m2 = p.matcher(nextIndex);
-                                    if (m1.find() && m2.find()) {
-                                        MatchResult ms1 = m1.toMatchResult();
-                                        MatchResult ms2 = m2.toMatchResult();
-                                        if (Integer.parseInt(ms1.group(1)) == Integer.parseInt(ms2.group(1)) && 
-                                        (Integer.parseInt(ms1.group(2)) + splitedIndex[i] == Integer.parseInt(ms2.group(2)))) {
-                                            found = true;
-                                            break;
-                                        }
-                                    }
+        // save splited strings and it's index
+        for (int i = 0; i < splitLength; i++) {
+            if ((i + 1) * SUBSTRING_LENGTH < pattern.length()) {
+                splitedStrings[i] = pattern.substring(i * SUBSTRING_LENGTH, (i + 1) * SUBSTRING_LENGTH);
+                splitedIndex[i] = i * SUBSTRING_LENGTH;
+            } else {
+                splitedStrings[i] = pattern.substring(pattern.length() - SUBSTRING_LENGTH, pattern.length());
+                splitedIndex[i] = pattern.length() - SUBSTRING_LENGTH;
+            }
+        }
+
+        // search each splited strings in AVLtree
+        LinkedList<SubStringList<String>> splitedStringList = new LinkedList<SubStringList<String>>();
+        AVLTree<String, SubStringList<String>> splitedTree = new AVLTree<String, SubStringList<String>>();
+        SubStringList<String> splitedIndexList = new SubStringList<String>(null);
+        for (int i = 0; i < splitedStrings.length; i++) {
+            splitedTree = ht.search(hash(splitedStrings[i]));
+            if (splitedTree != null && (splitedIndexList = splitedTree.search(splitedStrings[i]).item) != null) {
+                splitedStringList.add(splitedIndexList);
+            } else {
+                splitedStringList.clear();
+                break;
+            }
+        }
+        StringBuilder sb = new StringBuilder();
+        
+        if (!splitedStringList.isEmpty()) {
+            SubStringList<String> first = splitedStringList.peek();
+            Pattern p = Pattern.compile("^\\(*([0-9]+)\\,\\s*([0-9]+)\\)$");
+
+
+            for (String firstIndex : first) {
+                boolean found = true;
+                int i = 0;
+                for (SubStringList<String> subList : splitedStringList) {
+                    if (found) {
+                        found = false;
+                        for (String nextIndex : subList) {
+                            Matcher m1 = p.matcher(firstIndex);
+                            Matcher m2 = p.matcher(nextIndex);
+                            if (m1.find() && m2.find()) {
+                                if (Integer.parseInt(m1.group(1)) == Integer.parseInt(m2.group(1)) && 
+                                Math.addExact(Integer.parseInt(m1.group(2)),splitedIndex[i]) == Integer.parseInt(m2.group(2))) {
+                                    found = true;
+                                    break;
                                 }
-                                i++;
-                            } else {
-                                break;
                             }
                         }
-                        if (found) {
-                            sb.append(firstIndex);
-                            sb.append(" ");
-                        }
+                        i++;
+                    } else {
+                        break;
                     }
-                // }
+                }
+                if (found) {
+                    sb.append(firstIndex);
+                    sb.append(" ");
+                }
             }
-            if (sb.length() == 0) {
-                sb.append("(0, 0)");
-            } else {
-                sb.deleteCharAt(sb.length() - 1);
-            }
-            res = sb.toString();
-        // }
-        System.out.println(res);
+        }
+
+        if (sb.length() == 0) {
+            sb.append("(0, 0)");
+        } else {
+            sb.deleteCharAt(sb.length() - 1);
+        }
+        System.out.println(sb.toString());
     }
 }
 
