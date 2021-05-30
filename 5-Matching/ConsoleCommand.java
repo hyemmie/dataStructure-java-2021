@@ -22,7 +22,7 @@ public interface ConsoleCommand {
 	 * @param ht 조작할 HashTable 인스턴스
 	 * @throws Exception 일반 오류
 	 */
-	void apply(HashTable<AVLTree<String, SubStringList<String>>> ht, String input) throws Exception;
+	void apply(HashTable<SubAVLTree<String, SubStringList<String>>> ht, String input) throws Exception;
 
     /**
 	 * input의 ASCII code를 합하고 100으로 나눈 나머지를 반환핟여 hash한다
@@ -70,7 +70,7 @@ abstract class AbstractConsoleCommand implements ConsoleCommand {
 class InsertCmd extends AbstractConsoleCommand {
 
     @Override
-    public void apply(HashTable<AVLTree<String, SubStringList<String>>> ht, String input) throws Exception {
+    public void apply(HashTable<SubAVLTree<String, SubStringList<String>>> ht, String input) throws Exception {
         String filename = parse(input);
 
         FileReader fr = new FileReader(filename);
@@ -97,14 +97,14 @@ class InsertCmd extends AbstractConsoleCommand {
         }
     }
 
-    private void insert(HashTable<AVLTree<String, SubStringList<String>>> ht, String subString, String subStringIndex) throws Exception {
+    private void insert(HashTable<SubAVLTree<String, SubStringList<String>>> ht, String subString, String subStringIndex) throws Exception {
         int hasedString = hash(subString);
         if (ht.search(hasedString) == null) {
             SubStringList<String> newList = new SubStringList<>(subString);
             newList.add(subStringIndex);
-            AVLTree<String, SubStringList<String>> newAVLTree = new AVLTree<>();
-            newAVLTree.insert(newList);
-            ht.insert(hasedString, newAVLTree);
+            SubAVLTree<String, SubStringList<String>> newSubAVLTree = new SubAVLTree<>();
+            newSubAVLTree.insert(newList);
+            ht.insert(hasedString, newSubAVLTree);
         } else {
             SubStringList<String> newList = new SubStringList<>(subString);
             if (ht.search(hasedString).search(newList.getKey()).item == null) {
@@ -125,7 +125,7 @@ class PrintCmd extends AbstractConsoleCommand {
     static final String EMPTY_SLOT = "EMPTY";
 
 	@Override
-	public void apply(HashTable<AVLTree<String, SubStringList<String>>> ht, String input) throws Exception {
+	public void apply(HashTable<SubAVLTree<String, SubStringList<String>>> ht, String input) throws Exception {
         int indexNumber = Integer.parseInt(parse(input));
         if (indexNumber < 0 || indexNumber >= 100) throw new Exception();
         else print(ht, indexNumber);
@@ -142,7 +142,7 @@ class PrintCmd extends AbstractConsoleCommand {
         return sb;
     }
 
-    private void print(HashTable<AVLTree<String, SubStringList<String>>> ht, int indexNumber) {
+    private void print(HashTable<SubAVLTree<String, SubStringList<String>>> ht, int indexNumber) {
         String res = new String();
         if (ht.search(indexNumber) == null) {
             res = EMPTY_SLOT;
@@ -165,7 +165,7 @@ class PrintCmd extends AbstractConsoleCommand {
 class SearchCmd extends AbstractConsoleCommand {
 
 	@Override
-	public void apply(HashTable<AVLTree<String, SubStringList<String>>> ht, String input) throws Exception {
+	public void apply(HashTable<SubAVLTree<String, SubStringList<String>>> ht, String input) throws Exception {
         String pattern = parse(input);
         if (pattern.length() < SUBSTRING_LENGTH) throw new Exception("invalid pattern length");
         else {
@@ -173,7 +173,7 @@ class SearchCmd extends AbstractConsoleCommand {
         }
 	}
 
-    private void search(HashTable<AVLTree<String, SubStringList<String>>> ht, String pattern) {
+    private void search(HashTable<SubAVLTree<String, SubStringList<String>>> ht, String pattern) {
 
         // split input pattern up to SUBSTRING_LENGTH
         // int splitLength = (pattern.length() - 1) / SUBSTRING_LENGTH + 1;
@@ -192,13 +192,13 @@ class SearchCmd extends AbstractConsoleCommand {
             }
         }
 
-        // search each splited strings in AVLtree
+        // search each splited strings in SubAVLTree
         LinkedList<SubStringList<String>> splitedStringList = new LinkedList<SubStringList<String>>();
-        AVLTree<String, SubStringList<String>> splitedTree = new AVLTree<String, SubStringList<String>>();
+        SubAVLTree<String, SubStringList<String>> splitedStringTree = new SubAVLTree<String, SubStringList<String>>();
         SubStringList<String> splitedIndexList = new SubStringList<String>(null);
         for (int i = 0; i < splitedStrings.length; i++) {
-            splitedTree = ht.search(hash(splitedStrings[i]));
-            if (splitedTree != null && (splitedIndexList = splitedTree.search(splitedStrings[i]).item) != null) {
+            splitedStringTree = ht.search(hash(splitedStrings[i]));
+            if (splitedStringTree != null && (splitedIndexList = splitedStringTree.search(splitedStrings[i]).item) != null) {
                 splitedStringList.add(splitedIndexList);
             } else {
                 splitedStringList.clear();

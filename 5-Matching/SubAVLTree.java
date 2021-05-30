@@ -1,5 +1,5 @@
 // reference : AVL-RB-B-Tree class note pp.39-42
-interface AVLTreeInterface<K, T> {
+interface SubAVLTreeInterface<K, T> {
     public AVLNode<T> search(K key);
 	public void insert(T item);
 	public void delete(T item);
@@ -7,13 +7,13 @@ interface AVLTreeInterface<K, T> {
 	public void removeAll();
 }	
 
-public class AVLTree<K extends Comparable<K>, T extends SubStringListInterface<K>> implements AVLTreeInterface<K, T> {
+public class SubAVLTree<K extends Comparable<K>, T extends SubStringListInterface<K>> implements SubAVLTreeInterface<K, T> {
     private AVLNode<T> root;
     final AVLNode<T> NIL = new AVLNode<>();
     private final int LL = 1, LR = 2, RR = 3, RL = 4, NO_NEED = 0, ILLEGAL = -1;
 
 
-    public AVLTree() {
+    public SubAVLTree() {
         root = NIL;
     }
 

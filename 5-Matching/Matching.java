@@ -4,7 +4,7 @@ public class Matching
 {
 
 	// 프로그램에서 사용할 HashTable 객체를 생성한다.
-	static HashTable<AVLTree<String, SubStringList<String>>> ht;
+	static HashTable<SubAVLTree<String, SubStringList<String>>> ht;
 	public static void main(String args[]) throws Exception
 	{
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -32,7 +32,7 @@ public class Matching
 
 		switch (input.charAt(0)) {
 			case '<' : {
-				ht = new HashTable<AVLTree<String, SubStringList<String>>>();
+				ht = new HashTable<SubAVLTree<String, SubStringList<String>>>();
 				command = new InsertCmd();
 				command.apply(ht, input);
 				break;
